@@ -1,0 +1,6 @@
+@WarehouseManagementSystem.MinimalApi_HostAddress = http://localhost:5085
+
+GET {{WarehouseManagementSystem.MinimalApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

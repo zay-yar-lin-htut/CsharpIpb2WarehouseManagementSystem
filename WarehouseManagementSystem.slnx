@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="WarehouseManagementSystem.ControllerApi/WarehouseManagementSystem.ControllerApi.csproj" />
+  <Project Path="WarehouseManagementSystem.Database/WarehouseManagementSystem.Database.csproj" />
+  <Project Path="WarehouseManagementSystem.MinimalApi/WarehouseManagementSystem.MinimalApi.csproj" />
+</Solution>
