@@ -10,17 +10,12 @@ namespace WarehouseManagementSystem.ControllerApi.Controllers;
 [Route("api/[controller]")]
 public class CategoriesController : ControllerBase
 {
-    private readonly AppDbContext _context;
-
-    public CategoriesController(AppDbContext context)
-    {
-        _context = context;
-    }
-
     [HttpGet]
     public IActionResult GetAll()
     {
-        var categories = _context.Categories
+        var context = HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+        
+        var categories = context.Categories
             .Select(c => new CategoryResponse(
                 c.CategoryId,
                 c.CategoryName,
@@ -37,7 +32,9 @@ public class CategoriesController : ControllerBase
     [HttpGet("{id}")]
     public IActionResult GetById(int id)
     {
-        var category = _context.Categories
+        var context = HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+        
+        var category = context.Categories
             .Include(c => c.Products)
             .FirstOrDefault(c => c.CategoryId == id);
 
@@ -59,6 +56,8 @@ public class CategoriesController : ControllerBase
     [HttpPost]
     public IActionResult Create([FromBody] CreateCategoryRequest request)
     {
+        var context = HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+        
         var category = new Category
         {
             CategoryName = request.CategoryName,
@@ -67,8 +66,8 @@ public class CategoriesController : ControllerBase
             UpdatedAt = DateTime.Now
         };
 
-        _context.Categories.Add(category);
-        _context.SaveChanges();
+        context.Categories.Add(category);
+        context.SaveChanges();
 
         var response = new CategoryResponse(
             category.CategoryId,
@@ -85,7 +84,9 @@ public class CategoriesController : ControllerBase
     [HttpPut("{id}")]
     public IActionResult Update(int id, [FromBody] UpdateCategoryRequest request)
     {
-        var category = _context.Categories.Find(id);
+        var context = HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+        
+        var category = context.Categories.Find(id);
         if (category == null)
             return Common.Error(404, "Category not found");
 
@@ -93,7 +94,7 @@ public class CategoriesController : ControllerBase
         if (request.Description != null) category.Description = request.Description;
         category.UpdatedAt = DateTime.Now;
 
-        _context.SaveChanges();
+        context.SaveChanges();
 
         var response = new CategoryResponse(
             category.CategoryId,
@@ -110,12 +111,14 @@ public class CategoriesController : ControllerBase
     [HttpDelete("{id}")]
     public IActionResult Delete(int id)
     {
-        var category = _context.Categories.Find(id);
+        var context = HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+        
+        var category = context.Categories.Find(id);
         if (category == null)
             return Common.Error(404, "Category not found");
 
-        _context.Categories.Remove(category);
-        _context.SaveChanges();
+        context.Categories.Remove(category);
+        context.SaveChanges();
 
         return Common.Success(null, 204, "Category deleted successfully");
     }

@@ -6,19 +6,17 @@ public class CreateCategoryRequest
 {
     [Required(ErrorMessage = "CategoryName is required")]
     [StringLength(100, ErrorMessage = "CategoryName cannot exceed 100 characters")]
-    public string CategoryName { get; init; } = string.Empty;
+    public string CategoryName { get; set; } = string.Empty;
 
-    [StringLength(500, ErrorMessage = "Description cannot exceed 500 characters")]
-    public string? Description { get; init; }
+    public string? Description { get; set; }
 }
 
 public class UpdateCategoryRequest
 {
     [StringLength(100, ErrorMessage = "CategoryName cannot exceed 100 characters")]
-    public string? CategoryName { get; init; }
+    public string? CategoryName { get; set; }
 
-    [StringLength(500, ErrorMessage = "Description cannot exceed 500 characters")]
-    public string? Description { get; init; }
+    public string? Description { get; set; }
 }
 
 public record CategoryResponse(

@@ -10,17 +10,12 @@ namespace WarehouseManagementSystem.ControllerApi.Controllers;
 [Route("api/[controller]")]
 public class StorersController : ControllerBase
 {
-    private readonly AppDbContext _context;
-
-    public StorersController(AppDbContext context)
-    {
-        _context = context;
-    }
-
     [HttpGet]
     public IActionResult GetAll()
     {
-        var storers = _context.Storers
+        var context = HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+        
+        var storers = context.Storers
             .Select(s => new StorerResponse(
                 s.StorerId,
                 s.FullName,
@@ -37,7 +32,9 @@ public class StorersController : ControllerBase
     [HttpGet("{id}")]
     public IActionResult GetById(int id)
     {
-        var storer = _context.Storers.Find(id);
+        var context = HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+        
+        var storer = context.Storers.Find(id);
         if (storer == null)
             return Common.Error(404, "Storer not found");
 
@@ -56,6 +53,15 @@ public class StorersController : ControllerBase
     [HttpPost]
     public IActionResult Create([FromBody] CreateStorerRequest request)
     {
+        var context = HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+        
+        if (!string.IsNullOrEmpty(request.Email))
+        {
+            var emailExists = context.Storers.Any(s => s.Email == request.Email);
+            if (emailExists)
+                return Common.Error(400, "Email already exists");
+        }
+
         var storer = new Storer
         {
             FullName = request.FullName,
@@ -65,8 +71,8 @@ public class StorersController : ControllerBase
             CreatedAt = DateTime.Now
         };
 
-        _context.Storers.Add(storer);
-        _context.SaveChanges();
+        context.Storers.Add(storer);
+        context.SaveChanges();
 
         var response = new StorerResponse(
             storer.StorerId,
@@ -83,16 +89,25 @@ public class StorersController : ControllerBase
     [HttpPut("{id}")]
     public IActionResult Update(int id, [FromBody] UpdateStorerRequest request)
     {
-        var storer = _context.Storers.Find(id);
+        var context = HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+        
+        var storer = context.Storers.Find(id);
         if (storer == null)
             return Common.Error(404, "Storer not found");
+
+        if (!string.IsNullOrEmpty(request.Email))
+        {
+            var emailExists = context.Storers.Any(s => s.Email == request.Email && s.StorerId != id);
+            if (emailExists)
+                return Common.Error(400, "Email already exists");
+        }
 
         if (request.FullName != null) storer.FullName = request.FullName;
         if (request.Email != null) storer.Email = request.Email;
         if (request.Phone != null) storer.Phone = request.Phone;
         if (request.Address != null) storer.Address = request.Address;
 
-        _context.SaveChanges();
+        context.SaveChanges();
 
         var response = new StorerResponse(
             storer.StorerId,
@@ -109,12 +124,14 @@ public class StorersController : ControllerBase
     [HttpDelete("{id}")]
     public IActionResult Delete(int id)
     {
-        var storer = _context.Storers.Find(id);
+        var context = HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+        
+        var storer = context.Storers.Find(id);
         if (storer == null)
             return Common.Error(404, "Storer not found");
 
-        _context.Storers.Remove(storer);
-        _context.SaveChanges();
+        context.Storers.Remove(storer);
+        context.SaveChanges();
 
         return Common.Success(null, 204, "Storer deleted successfully");
     }

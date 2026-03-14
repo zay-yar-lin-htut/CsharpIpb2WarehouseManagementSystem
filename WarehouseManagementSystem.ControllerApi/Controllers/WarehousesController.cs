@@ -10,17 +10,12 @@ namespace WarehouseManagementSystem.ControllerApi.Controllers;
 [Route("api/[controller]")]
 public class WarehousesController : ControllerBase
 {
-    private readonly AppDbContext _context;
-
-    public WarehousesController(AppDbContext context)
-    {
-        _context = context;
-    }
-
     [HttpGet]
     public IActionResult GetAll()
     {
-        var warehouses = _context.Warehouses
+        var context = HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+        
+        var warehouses = context.Warehouses
             .Select(w => new WarehouseResponse(
                 w.WarehouseId,
                 w.WarehouseName,
@@ -36,7 +31,9 @@ public class WarehousesController : ControllerBase
     [HttpGet("{id}")]
     public IActionResult GetById(int id)
     {
-        var warehouse = _context.Warehouses.Find(id);
+        var context = HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+        
+        var warehouse = context.Warehouses.Find(id);
         if (warehouse == null)
             return Common.Error(404, "Warehouse not found");
 
@@ -54,6 +51,8 @@ public class WarehousesController : ControllerBase
     [HttpPost]
     public IActionResult Create([FromBody] CreateWarehouseRequest request)
     {
+        var context = HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+        
         var warehouse = new Warehouse
         {
             WarehouseName = request.WarehouseName,
@@ -62,8 +61,8 @@ public class WarehousesController : ControllerBase
             CreatedAt = DateTime.Now
         };
 
-        _context.Warehouses.Add(warehouse);
-        _context.SaveChanges();
+        context.Warehouses.Add(warehouse);
+        context.SaveChanges();
 
         var response = new WarehouseResponse(
             warehouse.WarehouseId,
@@ -79,7 +78,9 @@ public class WarehousesController : ControllerBase
     [HttpPut("{id}")]
     public IActionResult Update(int id, [FromBody] UpdateWarehouseRequest request)
     {
-        var warehouse = _context.Warehouses.Find(id);
+        var context = HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+        
+        var warehouse = context.Warehouses.Find(id);
         if (warehouse == null)
             return Common.Error(404, "Warehouse not found");
 
@@ -87,7 +88,7 @@ public class WarehousesController : ControllerBase
         if (request.Location != null) warehouse.Location = request.Location;
         if (request.Capacity.HasValue) warehouse.Capacity = request.Capacity;
 
-        _context.SaveChanges();
+        context.SaveChanges();
 
         var response = new WarehouseResponse(
             warehouse.WarehouseId,
@@ -103,12 +104,14 @@ public class WarehousesController : ControllerBase
     [HttpDelete("{id}")]
     public IActionResult Delete(int id)
     {
-        var warehouse = _context.Warehouses.Find(id);
+        var context = HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+        
+        var warehouse = context.Warehouses.Find(id);
         if (warehouse == null)
             return Common.Error(404, "Warehouse not found");
 
-        _context.Warehouses.Remove(warehouse);
-        _context.SaveChanges();
+        context.Warehouses.Remove(warehouse);
+        context.SaveChanges();
 
         return Common.Success(null, 204, "Warehouse deleted successfully");
     }

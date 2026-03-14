@@ -37,20 +37,52 @@ products.MapGet("/{id}", (int id, ProductService service) =>
     var product = service.GetById(id);
     return product is not null ? Results.Ok(product) : Results.NotFound();
 });
-products.MapPost("/", (CreateProductRequest request, ProductService service) =>
+products.MapPost("/", (CreateProductRequest request, ProductService service, AppDbContext context) =>
 {
     var (isValid, errors) = Validate(request);
     if (!isValid)
         return Results.BadRequest(new { errors });
     
+    if (request.CategoryId.HasValue)
+    {
+        var categoryExists = context.Categories.Any(c => c.CategoryId == request.CategoryId);
+        if (!categoryExists)
+            return Results.BadRequest(new { error = "Category not found" });
+    }
+
+    if (!string.IsNullOrEmpty(request.Sku))
+    {
+        var skuExists = context.Products.Any(p => p.Sku == request.Sku);
+        if (skuExists)
+            return Results.BadRequest(new { error = "Sku already exists" });
+    }
+    
     var product = service.Create(request);
     return Results.Created($"/api/products/{product.ProductId}", product);
 });
-products.MapPut("/{id}", (int id, UpdateProductRequest request, ProductService service) =>
+products.MapPut("/{id}", (int id, UpdateProductRequest request, ProductService service, AppDbContext context) =>
 {
+    var existingProduct = service.GetById(id);
+    if (existingProduct == null)
+        return Results.NotFound();
+
     var (isValid, errors) = Validate(request);
     if (!isValid)
         return Results.BadRequest(new { errors });
+    
+    if (request.CategoryId.HasValue)
+    {
+        var categoryExists = context.Categories.Any(c => c.CategoryId == request.CategoryId);
+        if (!categoryExists)
+            return Results.BadRequest(new { error = "Category not found" });
+    }
+
+    if (!string.IsNullOrEmpty(request.Sku))
+    {
+        var skuExists = context.Products.Any(p => p.Sku == request.Sku && p.ProductId != id);
+        if (skuExists)
+            return Results.BadRequest(new { error = "Sku already exists" });
+    }
     
     var product = service.Update(id, request);
     return product is not null ? Results.Ok(product) : Results.NotFound();
@@ -130,20 +162,38 @@ storers.MapGet("/{id}", (int id, StorerService service) =>
     var storer = service.GetById(id);
     return storer is not null ? Results.Ok(storer) : Results.NotFound();
 });
-storers.MapPost("/", (CreateStorerRequest request, StorerService service) =>
+storers.MapPost("/", (CreateStorerRequest request, StorerService service, AppDbContext context) =>
 {
     var (isValid, errors) = Validate(request);
     if (!isValid)
         return Results.BadRequest(new { errors });
+
+    if (!string.IsNullOrEmpty(request.Email))
+    {
+        var emailExists = context.Storers.Any(s => s.Email == request.Email);
+        if (emailExists)
+            return Results.BadRequest(new { error = "Email already exists" });
+    }
     
     var storer = service.Create(request);
     return Results.Created($"/api/storers/{storer.StorerId}", storer);
 });
-storers.MapPut("/{id}", (int id, UpdateStorerRequest request, StorerService service) =>
+storers.MapPut("/{id}", (int id, UpdateStorerRequest request, StorerService service, AppDbContext context) =>
 {
+    var existingStorer = service.GetById(id);
+    if (existingStorer == null)
+        return Results.NotFound();
+
     var (isValid, errors) = Validate(request);
     if (!isValid)
         return Results.BadRequest(new { errors });
+
+    if (!string.IsNullOrEmpty(request.Email))
+    {
+        var emailExists = context.Storers.Any(s => s.Email == request.Email && s.StorerId != id);
+        if (emailExists)
+            return Results.BadRequest(new { error = "Email already exists" });
+    }
     
     var storer = service.Update(id, request);
     return storer is not null ? Results.Ok(storer) : Results.NotFound();

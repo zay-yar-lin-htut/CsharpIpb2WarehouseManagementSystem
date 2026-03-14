@@ -6,25 +6,25 @@ public class CreateWarehouseRequest
 {
     [Required(ErrorMessage = "WarehouseName is required")]
     [StringLength(100, ErrorMessage = "WarehouseName cannot exceed 100 characters")]
-    public string WarehouseName { get; init; } = string.Empty;
+    public string WarehouseName { get; set; } = string.Empty;
 
-    [StringLength(200, ErrorMessage = "Location cannot exceed 200 characters")]
-    public string? Location { get; init; }
+    [StringLength(255, ErrorMessage = "Location cannot exceed 255 characters")]
+    public string? Location { get; set; }
 
     [Range(1, int.MaxValue, ErrorMessage = "Capacity must be at least 1")]
-    public int? Capacity { get; init; }
+    public int? Capacity { get; set; }
 }
 
 public class UpdateWarehouseRequest
 {
     [StringLength(100, ErrorMessage = "WarehouseName cannot exceed 100 characters")]
-    public string? WarehouseName { get; init; }
+    public string? WarehouseName { get; set; }
 
-    [StringLength(200, ErrorMessage = "Location cannot exceed 200 characters")]
-    public string? Location { get; init; }
+    [StringLength(255, ErrorMessage = "Location cannot exceed 255 characters")]
+    public string? Location { get; set; }
 
     [Range(1, int.MaxValue, ErrorMessage = "Capacity must be at least 1")]
-    public int? Capacity { get; init; }
+    public int? Capacity { get; set; }
 }
 
 public record WarehouseResponse(

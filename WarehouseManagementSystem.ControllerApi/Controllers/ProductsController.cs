@@ -10,17 +10,12 @@ namespace WarehouseManagementSystem.ControllerApi.Controllers;
 [Route("api/[controller]")]
 public class ProductsController : ControllerBase
 {
-    private readonly AppDbContext _context;
-
-    public ProductsController(AppDbContext context)
-    {
-        _context = context;
-    }
-
     [HttpGet]
     public IActionResult GetAll()
     {
-        var products = _context.Products
+        var context = HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+        
+        var products = context.Products
             .Include(p => p.Category)
             .Select(p => new ProductResponse(
                 p.ProductId,
@@ -41,7 +36,9 @@ public class ProductsController : ControllerBase
     [HttpGet("{id}")]
     public IActionResult GetById(int id)
     {
-        var product = _context.Products
+        var context = HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+        
+        var product = context.Products
             .Include(p => p.Category)
             .FirstOrDefault(p => p.ProductId == id);
 
@@ -66,6 +63,22 @@ public class ProductsController : ControllerBase
     [HttpPost]
     public IActionResult Create([FromBody] CreateProductRequest request)
     {
+        var context = HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+        
+        if (request.CategoryId.HasValue)
+        {
+            var categoryExists = context.Categories.Any(c => c.CategoryId == request.CategoryId);
+            if (!categoryExists)
+                return Common.Error(400, "Category not found");
+        }
+
+        if (!string.IsNullOrEmpty(request.Sku))
+        {
+            var skuExists = context.Products.Any(p => p.Sku == request.Sku);
+            if (skuExists)
+                return Common.Error(400, "Sku already exists");
+        }
+
         var product = new Product
         {
             ProductName = request.ProductName,
@@ -77,8 +90,8 @@ public class ProductsController : ControllerBase
             CreatedAt = DateTime.Now
         };
 
-        _context.Products.Add(product);
-        _context.SaveChanges();
+        context.Products.Add(product);
+        context.SaveChanges();
 
         var response = new ProductResponse(
             product.ProductId,
@@ -98,9 +111,25 @@ public class ProductsController : ControllerBase
     [HttpPut("{id}")]
     public IActionResult Update(int id, [FromBody] UpdateProductRequest request)
     {
-        var product = _context.Products.Find(id);
+        var context = HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+        
+        var product = context.Products.Find(id);
         if (product == null)
             return Common.Error(404, "Product not found");
+
+        if (request.CategoryId.HasValue)
+        {
+            var categoryExists = context.Categories.Any(c => c.CategoryId == request.CategoryId);
+            if (!categoryExists)
+                return Common.Error(400, "Category not found");
+        }
+
+        if (!string.IsNullOrEmpty(request.Sku))
+        {
+            var skuExists = context.Products.Any(p => p.Sku == request.Sku && p.ProductId != id);
+            if (skuExists)
+                return Common.Error(400, "Sku already exists");
+        }
 
         if (request.ProductName != null) product.ProductName = request.ProductName;
         if (request.Sku != null) product.Sku = request.Sku;
@@ -109,10 +138,10 @@ public class ProductsController : ControllerBase
         if (request.Description != null) product.Description = request.Description;
         if (request.CategoryId.HasValue) product.CategoryId = request.CategoryId;
 
-        _context.SaveChanges();
+        context.SaveChanges();
 
         var category = product.CategoryId.HasValue
-            ? _context.Categories.Find(product.CategoryId)
+            ? context.Categories.Find(product.CategoryId)
             : null;
 
         var response = new ProductResponse(
@@ -133,12 +162,14 @@ public class ProductsController : ControllerBase
     [HttpDelete("{id}")]
     public IActionResult Delete(int id)
     {
-        var product = _context.Products.Find(id);
+        var context = HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+        
+        var product = context.Products.Find(id);
         if (product == null)
             return Common.Error(404, "Product not found");
 
-        _context.Products.Remove(product);
-        _context.SaveChanges();
+        context.Products.Remove(product);
+        context.SaveChanges();
 
         return Common.Success(null, 204, "Product deleted successfully");
     }

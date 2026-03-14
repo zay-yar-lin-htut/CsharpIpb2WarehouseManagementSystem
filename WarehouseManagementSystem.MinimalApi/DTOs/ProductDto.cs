@@ -5,44 +5,42 @@ namespace WarehouseManagementSystem.MinimalApi.DTOs;
 public class CreateProductRequest
 {
     [Required(ErrorMessage = "ProductName is required")]
-    [StringLength(100, ErrorMessage = "ProductName cannot exceed 100 characters")]
-    public string ProductName { get; init; } = string.Empty;
+    [StringLength(150, ErrorMessage = "ProductName cannot exceed 150 characters")]
+    public string ProductName { get; set; } = string.Empty;
 
     [StringLength(50, ErrorMessage = "Sku cannot exceed 50 characters")]
-    public string? Sku { get; init; }
+    public string? Sku { get; set; }
 
     [Range(0, int.MaxValue, ErrorMessage = "Quantity must be 0 or greater")]
-    public int? Quantity { get; init; }
+    public int? Quantity { get; set; }
 
-    [Range(0, double.MaxValue, ErrorMessage = "UnitPrice must be 0 or greater")]
-    public decimal? UnitPrice { get; init; }
+    [Range(0, (double)decimal.MaxValue, ErrorMessage = "UnitPrice must be 0 or greater")]
+    public decimal? UnitPrice { get; set; }
 
-    [StringLength(500, ErrorMessage = "Description cannot exceed 500 characters")]
-    public string? Description { get; init; }
+    public string? Description { get; set; }
 
     [Range(1, int.MaxValue, ErrorMessage = "CategoryId must be a positive number")]
-    public int? CategoryId { get; init; }
+    public int? CategoryId { get; set; }
 }
 
 public class UpdateProductRequest
 {
-    [StringLength(100, ErrorMessage = "ProductName cannot exceed 100 characters")]
-    public string? ProductName { get; init; }
+    [StringLength(150, ErrorMessage = "ProductName cannot exceed 150 characters")]
+    public string? ProductName { get; set; }
 
     [StringLength(50, ErrorMessage = "Sku cannot exceed 50 characters")]
-    public string? Sku { get; init; }
+    public string? Sku { get; set; }
 
     [Range(0, int.MaxValue, ErrorMessage = "Quantity must be 0 or greater")]
-    public int? Quantity { get; init; }
+    public int? Quantity { get; set; }
 
-    [Range(0, double.MaxValue, ErrorMessage = "UnitPrice must be 0 or greater")]
-    public decimal? UnitPrice { get; init; }
+    [Range(0, (double)decimal.MaxValue, ErrorMessage = "UnitPrice must be 0 or greater")]
+    public decimal? UnitPrice { get; set; }
 
-    [StringLength(500, ErrorMessage = "Description cannot exceed 500 characters")]
-    public string? Description { get; init; }
+    public string? Description { get; set; }
 
     [Range(1, int.MaxValue, ErrorMessage = "CategoryId must be a positive number")]
-    public int? CategoryId { get; init; }
+    public int? CategoryId { get; set; }
 }
 
 public record ProductResponse(
